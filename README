@@ -1,0 +1,8 @@
+test installation with:
+R CMD INSTALL --library Rlib src/MOCCA
+
+compile a package with:
+R CMD build src/MOCCA
+
+in R run:
+library(MOCCA,lib.loc="Rlib")

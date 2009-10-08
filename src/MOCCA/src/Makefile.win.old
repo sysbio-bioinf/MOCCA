@@ -1,0 +1,22 @@
+SRC = RobClustCompareClusters.cpp
+OBJ = RobClustCompareClusters.o
+LINKOBJ  = .o $(RES)
+DLLLIBS = -s -L../RcppSrc -lRcpp -L"$(RHOME)/bin" -lR --no-export-all-symbols --add-stdcall-alias
+LIB  = libRobClust.a
+CXXFLAGS = -I../RcppSrc -I"$(RHOME)/include" -I"$(RHOME)/src/include" -Wall -O2
+RM = rm -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before libRobClust.a all-after
+
+clean:  clean-custom
+	${RM} $(LINKOBJ) $(BIN)
+
+$(OBJ): $(SRC)
+	$(CXX) -c $(SRC) -o $(OBJ) $(CXXFLAGS)
+
+$(LIB): $(LINKOBJ)
+	ar r $(LIB) $(OBJ)
+	ranlib $(LIB)
+	rm $(OBJ)
