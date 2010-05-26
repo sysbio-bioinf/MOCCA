@@ -31,3 +31,4 @@ run_clustering <- function(x, M, K = 2:20, algorithms = c("kmeans", "fcmeans", "
 
   CRES
 }
+

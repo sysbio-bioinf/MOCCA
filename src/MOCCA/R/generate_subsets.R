@@ -11,3 +11,4 @@ generate_subsets <- function(x, R, method=c("jackknife", "bootstrap", "bisect"))
                      bisect    = replicate(R, sample(1:n)[1:trunc(n/2)]))
   M
 }
+

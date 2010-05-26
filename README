@@ -1,5 +1,5 @@
 test installation with:
-R CMD INSTALL --library Rlib src/MOCCA
+R CMD INSTALL --library=Rlib src/MOCCA
 
 compile a package with:
 R CMD build src/MOCCA

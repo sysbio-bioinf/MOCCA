@@ -1,4 +1,4 @@
-kmeans <- function(x, centers = 2, iter.max = 20, metric = "lnorm", lnorm = 2, filename = "")
+moccakmeans <- function(x, centers = 2, iter.max = 20, metric = "lnorm", lnorm = 2, filename = "")
 {
   if(missing(x))
     stop("data set 'x' must be specified")
