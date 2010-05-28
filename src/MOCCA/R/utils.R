@@ -27,9 +27,13 @@ runcluster <- function(x, k, subset, method, iter.max, nstart){
   res
 }
 
-clusval <- function(cluster1, cluster2){
+clusval <- function(cluster1, cluster2, k){
   cluster1 <- as.integer(cluster1)
   cluster2 <- as.integer(cluster2)
+  
+  if(length(unique(cluster1))<k || length(unique(cluster2))<k)
+    return(list(MCA=NA, Rand=NA, Jaccard=NA, FM=NA, RR=NA, DP=NA))
+  
   ext <- std.ext(cluster1, cluster2)
   cfm <- confusion.matrix(cluster1, cluster2)
   
@@ -45,7 +49,7 @@ extract_index <- function(eres, algorithm, index){
   res
 }
 
-create_objectives <- function(eres, algorithms, indices, methods, correct){
+create_objectives <- function(eres, algorithms, indices, methods){
   maxK <- length(eres[["baseline"]])
   maxB <- length(indices)*length(methods)
   bases <- matrix(nr=maxB,nc=maxK)
@@ -75,4 +79,38 @@ create_objectives <- function(eres, algorithms, indices, methods, correct){
     }
   }
   res
+}
+
+dominate <- function(x, y){
+  all(x<=y) & any(x<y)
+}
+
+nondominated <- function(x, sol){
+  !any(apply(sol, 2, function(u) dominate(u,x)))
+}
+
+getParetoSet <- function(sol){
+  # format input -> na.omit omits rows not columns
+  tmpsol <- t(na.omit(t(sol)))
+
+  # build pareto set
+  ps <- which(sapply(1:ncol(tmpsol), function(u) nondominated(tmpsol[,u], tmpsol[,-u])))
+  
+  # format output
+  omitted <- attributes(tmpsol)$na.action
+  for(i in omitted){
+    idx <- ps >= i
+    ps[idx] <- ps[idx] + 1
+  }
+  
+  ps
+}
+
+getParetoRanking <- function(sol, ps){
+  # format input -> na.omit omits rows not columns
+  tmpsol <- t(na.omit(t(sol)))
+  
+  # for each solution in ps: how many objective function values in this solution
+  # are better than values in corresponing objectives in other solutions
+  t(apply(sol[,ps], 2, function(u) apply(tmpsol, 2, function(v) sum(u<v))))
 }

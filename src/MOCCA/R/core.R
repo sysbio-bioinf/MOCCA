@@ -68,7 +68,7 @@ mocca.validate <- function(cres){
   
   for(k in K){
     for(alg in algorithms){
-      eres[[alg]][[k]] <- combn(R, 2, function(u) clusval(cres[[alg]][[k]][[u[1]]], cres[[alg]][[k]][[u[2]]]), simplify=F)
+        eres[[alg]][[k]] <- combn(R, 2, function(u) clusval(cres[[alg]][[k]][[u[1]]], cres[[alg]][[k]][[u[2]]], k), simplify=F)
     }
   }
 
@@ -76,6 +76,34 @@ mocca.validate <- function(cres){
   eres
 }
 
-mocca.optimize <- function(){
+mocca.objectives <- function(eres){
+  if(missing(eres) || !inherits(eres,"mocca.validate"))
+    stop("'eres' must be of type 'mocca.validate'")
 
+  algorithms <- names(eres)[-1]
+  indices <- names(eres$baseline[[which(!(sapply(cres[[1]], is.null)))[1]]][[1]])
+  methods <- c("mean", "median")
+  
+  obj <- create_objectives(eres, algorithms, indices, methods)
+  class(obj) <- "mocca.objectives"
+  obj
+}
+
+plot.mocca.objectives <- function(obj, x=1, y=2){
+  if(missing(obj) || !inherits(obj,"mocca.objectives"))
+    stop("'obj' must be of type 'mocca.objectives'")
+
+  plot(obj[x,], obj[y,], xlab=rownames(obj)[x], ylab=rownames(obj)[y])
+}
+
+mocca.pareto <- function(obj){
+  if(missing(obj)) # || !inherits(obj,"mocca.objectives"))
+    stop("'obj' must be of type 'mocca.objectives'")
+
+  ps <- getParetoSet(obj)
+  psrank <- getParetoRanking(obj, ps)
+  
+  res <- list(ps=ps, psrank=psrank)
+  class(res) <- "mocca.pareto"
+  res
 }
