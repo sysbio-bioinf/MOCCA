@@ -1,2 +1,2 @@
-export("mocca.boot", "mocca.clust", "mocca.validate", "mocca.objectives", "mocca.pareto", "plot.mocca.objectives")
+export("mocca.boot", "mocca.clust", "mocca.validate", "mocca.objectives", "mocca.pareto", "plot.mocca.objectives", "mocca")
 

@@ -1,7 +1,0 @@
-rm -f confdefs.h config.log config.status
-rm -f src/Makevars
-rm -f src/*.o src/*.so
-rm -f RcppSrc/*.o RcppSrc/*.a
-rm -rf autom4te.cache
-find . -name \*~ -exec rm {} \;
-find . -name \*.flc -exec rm {} \;

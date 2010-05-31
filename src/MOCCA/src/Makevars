@@ -1,2 +1,0 @@
-PKG_CXXFLAGS= -I../RcppSrc -I/usr/include/libxml2 -I/usr/include/libxml2/libxml
-PKG_LIBS= -L../RcppSrc -lRcpp -lxml2 

@@ -5,9 +5,9 @@ mocca.boot <- function(x, R, n=nrow(x), replace=F){
     stop("'R' must be positiv")
   
   if(replace)
-    mb <- replicate(R, sample(1:n, replace = T))    
+    mb <- replicate(R, sort(sample(1:nrow(x), n, replace = T)))
   else
-    mb <- replicate(R, sample(1:n))
+    mb <- replicate(R, sort(sample(1:nrow(x), n)))
 
   class(mb) <- "mocca.boot"
   mb
@@ -81,7 +81,7 @@ mocca.objectives <- function(eres){
     stop("'eres' must be of type 'mocca.validate'")
 
   algorithms <- names(eres)[-1]
-  indices <- names(eres$baseline[[which(!(sapply(cres[[1]], is.null)))[1]]][[1]])
+  indices <- names(eres$baseline[[which(!(sapply(eres[[1]], is.null)))[1]]][[1]])
   methods <- c("mean", "median")
   
   obj <- create_objectives(eres, algorithms, indices, methods)
@@ -105,5 +105,52 @@ mocca.pareto <- function(obj){
   
   res <- list(ps=ps, psrank=psrank)
   class(res) <- "mocca.pareto"
+  res
+}
+
+mocca <- function(x, R = 50, K = 2:20, sampling.method = c("jackknife", "bootstrap", "bisect"), cluster.algorithms = c("kmeans", "fcmeans", "neuralgas"), validation.index = c("MCA", "Rand", "Jaccard", "FM", "RR", "DP"), iter.max=10, nstart=1, save.dir = "./", save.all=F){
+
+  if(missing(x))
+    stop("'x' must be a matrix")
+  if(R <= 0)
+    stop("'R' must be positiv")
+  if(min(K)<2)
+    stop("min 'K' must be bigger than 1")
+  
+  sampling.method <- match.arg(sampling.method)
+  cluster.algorithms <- match.arg(cluster.algorithms, several.ok = T)
+  validation.index <- match.arg(validation.index, several.ok = T)
+
+  print("generating subsets")
+  size <- switch(sampling.method,
+                 jackknife= nrow(x)-trunc(sqrt(nrow(x))),
+                 bootstrap= nrow(x),
+                 bisect= trunc(nrow(x)/2))
+  mb <- mocca.boot(x, R, size, if(sampling.method=="bootstrap"){T}else{F})
+
+  print("running cluster algorithms")
+  cres <- mocca.clust(x, mb, K, cluster.algorithms, iter.max=iter.max, nstart=nstart)
+
+  print("running evaluation")
+  eres <- mocca.validate(cres)
+
+  print("running multi-objective optimization")
+  obj <- mocca.objectives(eres)
+  res <- mocca.pareto(obj)
+  
+  print("saving details")
+
+  if(save.all){
+    if(save.dir=="./")
+      save.dir <- paste(save.dir, as.character(Sys.time(), format = "%Y-%m-%d-%H-%M-%S"), sep="")
+    dir.create(save.dir)
+    
+    save(cres, file = paste(save.dir, "/cres_C", max(K), "_R", R, ".RData", sep=""))
+    save(eres, file = paste(save.dir, "/eres_C", max(K), "_R", R, ".RData", sep=""))
+    save(res, file = paste(save.dir, "/pres_C", max(K), "_R", R, ".RData", sep=""))
+    write(res$ps, file = paste(save.dir, "/result_C", max(K), "_R", R, ".txt", sep=""),ncolumns=length(res$ps))
+    write(t(res$psrank), file = paste(save.dir, "/result_C", max(K), "_R", R, ".txt", sep=""), ncolumns=nrow(res$psrank),append=T)
+  }
+
   res
 }
