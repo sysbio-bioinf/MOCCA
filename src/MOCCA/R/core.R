@@ -13,7 +13,7 @@ mocca.boot <- function(x, R, n=nrow(x), replace=F){
   mb
 }
 
-mocca.clust <- function(x, mb, K = 2:20, algorithms = c("kmeans", "fcmeans", "neuralgas"), iter.max=10, nstart=1){
+mocca.clust <- function(x, mb, K = 2:20, algorithms = c("kmeans", "fcmeans", "neuralgas", "single"), iter.max=10, nstart=1){
   if(missing(x))
     stop("'x' must be a matrix")
   if(missing(mb) || !inherits(mb, "mocca.boot"))
@@ -82,33 +82,42 @@ mocca.objectives <- function(eres){
 
   algorithms <- names(eres)[-1]
   indices <- names(eres$baseline[[which(!(sapply(eres[[1]], is.null)))[1]]][[1]])
-  methods <- c("mean", "median")
+  #methods <- c("mean", "median")
+  methods <- c("mean")
   
   obj <- create_objectives(eres, algorithms, indices, methods)
   class(obj) <- "mocca.objectives"
   obj
 }
 
-plot.mocca.objectives <- function(obj, x=1, y=2){
-  if(missing(obj) || !inherits(obj,"mocca.objectives"))
-    stop("'obj' must be of type 'mocca.objectives'")
+`[.mocca.objectives` <- function(x, ..., drop=T){
+  cl <- oldClass(x)
+  class(x) <- NULL
+  val <- NextMethod("[")
+  class(val) <- cl
+  val
+}
 
-  plot(obj[x,], obj[y,], xlab=rownames(obj)[x], ylab=rownames(obj)[y])
+plot.mocca.objectives <- function(x, y=c(1,2), ...){
+  class(x) <- NULL
+  plot(x[y[1],], x[y[2],], pch=NA, xlab=rownames(x)[y[1]], ylab=rownames(x)[y[2]], ...)
+  text(x[y[1],], x[y[2],], labels=colnames(x))
 }
 
 mocca.pareto <- function(obj){
-  if(missing(obj)) # || !inherits(obj,"mocca.objectives"))
+  if(missing(obj) || !inherits(obj,"mocca.objectives"))
     stop("'obj' must be of type 'mocca.objectives'")
 
   ps <- getParetoSet(obj)
-  psrank <- getParetoRanking(obj, ps)
-  
-  res <- list(ps=ps, psrank=psrank)
+  pstable <- getParetoRanking(obj, ps)
+
+  res <- list(rank=ps[order(apply(pstable, 1, function(u) min(u[-which(u==0)])), decreasing=T)], table=pstable)
+
   class(res) <- "mocca.pareto"
   res
 }
 
-mocca <- function(x, R = 50, K = 2:20, sampling.method = c("jackknife", "bootstrap", "bisect"), cluster.algorithms = c("kmeans", "fcmeans", "neuralgas"), validation.index = c("MCA", "Rand", "Jaccard", "FM", "RR", "DP"), iter.max=10, nstart=1, save.dir = "./", save.all=F){
+mocca <- function(x, R = 50, K = 2:20, sampling.method = c("jackknife", "bootstrap", "bisect"), cluster.algorithms = c("kmeans", "fcmeans", "neuralgas", "single"), validation.index = c("MCA", "Rand", "Jaccard", "FM", "RR", "DP"), iter.max=10, nstart=1, save.dir = "./", save.all=F){
 
   if(missing(x))
     stop("'x' must be a matrix")

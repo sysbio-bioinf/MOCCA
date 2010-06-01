@@ -18,12 +18,18 @@ predict_cclust <- function(x, k, subset, iter.max){
   predict.cclust(train, x)$cluster
 }
 
+predict_single <- function(x, k, subset){
+  train <- cutree(agnes(x[subset, ], method="single", keep.diss=F, keep.data=F), k)
+  as.integer(knn1(x[subset, ], x, train))
+}
+
 runcluster <- function(x, k, subset, method, iter.max, nstart){
   res <- switch(method,
                 baseline  =  predict_baseline(x, k, subset),
                 kmeans    =  predict_kmeans(x, k, subset, iter.max, nstart),
                 fcmeans   =  predict_cmeans(x, k, subset, iter.max),
-                neuralgas =  predict_cclust(x, k, subset, iter.max))
+                neuralgas =  predict_cclust(x, k, subset, iter.max),
+                single = predict_single(x, k, subset))
   res
 }
 
@@ -82,16 +88,25 @@ create_objectives <- function(eres, algorithms, indices, methods){
 }
 
 dominate <- function(x, y){
-  all(x<=y) & any(x<y)
+  all(x<=y, na.rm=T) & any(x<y, na.rm=T)
 }
 
 nondominated <- function(x, sol){
   !any(apply(sol, 2, function(u) dominate(u,x)))
 }
 
+na.omit.mocca.objectives <- function(x){
+  omitted <- which(apply(x, 2, function(u) all(is.na(u))))
+  res <- x[, -omitted]
+  class(res) <- "na.omit"
+  attr(res, which="na.action") <- omitted
+  res
+}
+
 getParetoSet <- function(sol){
   # format input -> na.omit omits rows not columns
-  tmpsol <- t(na.omit(t(sol)))
+#  tmpsol <- t(na.omit(t(sol)))
+  tmpsol <- na.omit(sol)
 
   # build pareto set
   ps <- which(sapply(1:ncol(tmpsol), function(u) nondominated(tmpsol[,u], tmpsol[,-u])))
@@ -108,9 +123,10 @@ getParetoSet <- function(sol){
 
 getParetoRanking <- function(sol, ps){
   # format input -> na.omit omits rows not columns
-  tmpsol <- t(na.omit(t(sol)))
-  
+#  tmpsol <- t(na.omit(t(sol)))
+  tmpsol <- na.omit(sol)
+
   # for each solution in ps: how many objective function values in this solution
   # are better than values in corresponing objectives in other solutions
-  t(apply(sol[,ps], 2, function(u) apply(tmpsol, 2, function(v) sum(u<v))))
+  t(apply(sol[,ps,drop=F], 2, function(u) apply(tmpsol, 2, function(v) if(all(u==v, na.rm=T)){0} else (sum(u<v, na.rm=T) + sum(is.na(v))))))
 }
