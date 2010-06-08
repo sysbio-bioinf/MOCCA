@@ -1,19 +1,20 @@
-mocca.boot <- function(x, R, n=nrow(x), replace=F){
+mocca.boot <- function(x, R=10, size=nrow(x), replace=T){
   if(missing(x))
     stop("'x' must be a matrix")
   if(R <= 0)
     stop("'R' must be positiv")
   
   if(replace)
-    mb <- replicate(R, sort(sample(1:nrow(x), n, replace = T)))
+    mb <- replicate(R, sort(sample(1:nrow(x), size, replace = T)))
   else
-    mb <- replicate(R, sort(sample(1:nrow(x), n)))
+    mb <- replicate(R, sort(sample(1:nrow(x), size)))
 
   class(mb) <- "mocca.boot"
   mb
 }
 
-mocca.clust <- function(x, mb, K = 2:20, algorithms = c("kmeans", "fcmeans", "neuralgas", "single"), iter.max=10, nstart=1){
+## mocca.clust <- function(x, mb, K = 2:10, algorithms = c("kmeans", "fcmeans", "neuralgas", "single"), iter.max=1000, nstart=10){
+mocca.clust <- function(x, mb, K = 2:10, algorithms = c("kmeans", "neuralgas", "single"), iter.max=10, nstart=1){
   if(missing(x))
     stop("'x' must be a matrix")
   if(missing(mb) || !inherits(mb, "mocca.boot"))
@@ -51,10 +52,12 @@ mocca.clust <- function(x, mb, K = 2:20, algorithms = c("kmeans", "fcmeans", "ne
   cres
 }
 
-mocca.validate <- function(cres){
+mocca.validate <- function(x, cres){
+  if(missing(x))
+    stop("'x' must be a matrix")
   if(missing(cres) || !inherits(cres,"mocca.clust"))
     stop("'cres' must be of type 'mocca.clust'")
-  
+ 
   algorithms <- names(cres)
   K <- which(!(sapply(cres[[1]], is.null)))
   R <- length(cres[[1]][[K[1]]])
@@ -68,7 +71,7 @@ mocca.validate <- function(cres){
   
   for(k in K){
     for(alg in algorithms){
-        eres[[alg]][[k]] <- combn(R, 2, function(u) clusval(cres[[alg]][[k]][[u[1]]], cres[[alg]][[k]][[u[2]]], k), simplify=F)
+        eres[[alg]][[k]] <- combn(R, 2, function(u) clusval(x, cres[[alg]][[k]][[u[1]]], cres[[alg]][[k]][[u[2]]], k), simplify=F)
     }
   }
 
@@ -82,8 +85,8 @@ mocca.objectives <- function(eres){
 
   algorithms <- names(eres)[-1]
   indices <- names(eres$baseline[[which(!(sapply(eres[[1]], is.null)))[1]]][[1]])
-  #methods <- c("mean", "median")
-  methods <- c("mean")
+  ## methods <- c("mean", "median")
+  methods <- c("median")
   
   obj <- create_objectives(eres, algorithms, indices, methods)
   class(obj) <- "mocca.objectives"
@@ -117,8 +120,8 @@ mocca.pareto <- function(obj){
   res
 }
 
-mocca <- function(x, R = 50, K = 2:20, sampling.method = c("jackknife", "bootstrap", "bisect"), cluster.algorithms = c("kmeans", "fcmeans", "neuralgas", "single"), validation.index = c("MCA", "Rand", "Jaccard", "FM", "RR", "DP"), iter.max=10, nstart=1, save.dir = "./", save.all=F){
-
+## mocca <- function(x, R = 50, K = 2:20, sampling.method = c("jackknife", "bootstrap", "bisect"), cluster.algorithms = c("kmeans", "fcmeans", "neuralgas", "single"), validation.index = c("MCA", "Rand", "Jaccard", "FM", "RR", "DP"), iter.max=10, nstart=1, save.dir = "./", save.all=F){
+mocca <- function(x, R = 50, K = 2:10, iter.max=1000, nstart=10, save.all=F, save.dir = "./"){
   if(missing(x))
     stop("'x' must be a matrix")
   if(R <= 0)
@@ -126,22 +129,23 @@ mocca <- function(x, R = 50, K = 2:20, sampling.method = c("jackknife", "bootstr
   if(min(K)<2)
     stop("min 'K' must be bigger than 1")
   
-  sampling.method <- match.arg(sampling.method)
-  cluster.algorithms <- match.arg(cluster.algorithms, several.ok = T)
-  validation.index <- match.arg(validation.index, several.ok = T)
+  # sampling.method <- match.arg(sampling.method)
+  # cluster.algorithms <- match.arg(cluster.algorithms, several.ok = T)
+  # validation.index <- match.arg(validation.index, several.ok = T)
 
   print("generating subsets")
-  size <- switch(sampling.method,
-                 jackknife= nrow(x)-trunc(sqrt(nrow(x))),
-                 bootstrap= nrow(x),
-                 bisect= trunc(nrow(x)/2))
-  mb <- mocca.boot(x, R, size, if(sampling.method=="bootstrap"){T}else{F})
+  #size <- switch(sampling.method,
+  #               jackknife= nrow(x)-trunc(sqrt(nrow(x))),
+  #               bootstrap= nrow(x),
+  #               bisect= trunc(nrow(x)/2))
+  #mb <- mocca.boot(x, R, size, if(sampling.method=="bootstrap"){T}else{F})
+  mb <- mocca.boot(x, R)
 
   print("running cluster algorithms")
-  cres <- mocca.clust(x, mb, K, cluster.algorithms, iter.max=iter.max, nstart=nstart)
+  cres <- mocca.clust(x, mb, K, iter.max=iter.max, nstart=nstart)
 
   print("running evaluation")
-  eres <- mocca.validate(cres)
+  eres <- mocca.validate(x, cres)
 
   print("running multi-objective optimization")
   obj <- mocca.objectives(eres)
@@ -158,7 +162,7 @@ mocca <- function(x, R = 50, K = 2:20, sampling.method = c("jackknife", "bootstr
     save(eres, file = paste(save.dir, "/eres_C", max(K), "_R", R, ".RData", sep=""))
     save(res, file = paste(save.dir, "/pres_C", max(K), "_R", R, ".RData", sep=""))
     write(res$ps, file = paste(save.dir, "/result_C", max(K), "_R", R, ".txt", sep=""),ncolumns=length(res$ps))
-    write(t(res$psrank), file = paste(save.dir, "/result_C", max(K), "_R", R, ".txt", sep=""), ncolumns=nrow(res$psrank),append=T)
+    write(t(res$pstable), file = paste(save.dir, "/result_C", max(K), "_R", R, ".txt", sep=""), ncolumns=nrow(res$pstable),append=T)
   }
 
   res

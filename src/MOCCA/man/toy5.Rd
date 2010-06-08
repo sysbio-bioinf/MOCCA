@@ -1,12 +1,18 @@
 \name{toy5}
-\docType{data}
 \alias{toy5}
-\title{Toy data set for 5 clusters}
+\docType{data}
+\title{
+Toy data set with 5 clusters
+}
 \description{
-This two-dimensional toy data set illustrates five clusters for cluster
-algorithms. Each cluster contains 10 points.}
-\usage{toy5}
-\format{A matrix containing 50 points in 2 dimensions.}
-\source{Each cluster was build by a two-dimensional normal distribution.}
-%\references{McNeil, D. R. (1977) \emph{Interactive Data Analysis}.New York: Wiley.}
+This artificial data set contains 5 two dimensional gaussian clusters.
+}
+\usage{data(toy5)}
+\format{
+toy5 is a matrix with 50 cases (rows) and 2 variables (cols).
+}
+\examples{
+data(toy5)
+plot(toy5)
+}
 \keyword{datasets}

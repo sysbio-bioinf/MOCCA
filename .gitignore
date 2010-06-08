@@ -4,4 +4,6 @@
 .DS_Store
 Rlib/*
 !Rlib/.gitignore
+MOCCA.Rcheck/*
+.Rhistory
 *.tar.gz

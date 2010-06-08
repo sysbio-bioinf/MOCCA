@@ -33,17 +33,28 @@ runcluster <- function(x, k, subset, method, iter.max, nstart){
   res
 }
 
-clusval <- function(cluster1, cluster2, k){
+cross.quant.similarity <- function(x, cluster1, cluster2){
+  k <- max(sort(unique(cluster1)))
+  centroids1 <- t(sapply(1:k, function(u) {y <-x[cluster1==u,,drop=F]; colSums(y)/nrow(y)}))
+  centroids2 <- t(sapply(1:k, function(u) {y <-x[cluster2==u,,drop=F]; colSums(y)/nrow(y)}))
+  dists2cent1 <- as.matrix(dist(rbind(centroids1, x)))[1:k,-c(1:k)]
+  dists2cent2 <- as.matrix(dist(rbind(centroids2, x)))[1:k,-c(1:k)]
+  1 - (mean(sapply(1:length(cluster1), function(u) abs(dists2cent1[cluster1[u],u]-dists2cent2[cluster2[u],u]))) / max(dist(x))) # to bound in [0, 1]
+}
+
+clusval <- function(x, cluster1, cluster2, k){
   cluster1 <- as.integer(cluster1)
   cluster2 <- as.integer(cluster2)
   
   if(length(unique(cluster1))<k || length(unique(cluster2))<k)
-    return(list(MCA=NA, Rand=NA, Jaccard=NA, FM=NA, RR=NA, DP=NA))
+    #return(list(MCA=NA, Rand=NA, Jaccard=NA, FM=NA, RR=NA, DP=NA, CQS=NA))
+    return(list(MCA=NA, Jaccard=NA, FM=NA, CQS=NA))
   
   ext <- std.ext(cluster1, cluster2)
   cfm <- confusion.matrix(cluster1, cluster2)
   
-  list(MCA=similarity.index(cfm), Rand=clv.Rand(ext), Jaccard=clv.Jaccard(ext), FM=clv.Folkes.Mallows(ext), RR=clv.Russel.Rao(ext), DP=dot.product(cluster1, cluster2))
+  #list(MCA=similarity.index(cfm), Rand=clv.Rand(ext), Jaccard=clv.Jaccard(ext), FM=clv.Folkes.Mallows(ext), RR=clv.Russel.Rao(ext), DP=dot.product(cluster1, cluster2), CQS=cross.quant.similarity(x, cluster1, cluster2))
+  list(MCA=similarity.index(cfm), Jaccard=clv.Jaccard(ext), FM=clv.Folkes.Mallows(ext), CQS=cross.quant.similarity(x, cluster1, cluster2))
 }
 
 extract_index <- function(eres, algorithm, index){
@@ -76,10 +87,11 @@ create_objectives <- function(eres, algorithms, indices, methods){
     for(idx in indices){
       ei <- extract_index(eres, alg, idx)
       for(met in methods){
-        # correct for chance -> subtract value from baseline
+        # correct for chance -> subtract baseline from value
         # minimization problem -> (1 - idx)
         res[counter,] <- 1 - (sapply(ei, function(u) if(is.null(u)) NA else do.call(met, list(u))) - bases[((counter-1)%%maxB)+1,])
-        rownames(res)[counter] <- paste(alg, idx, met, sep=".")
+        #rownames(res)[counter] <- paste(alg, idx, met, sep=".")
+        rownames(res)[counter] <- paste(alg, idx, sep=".")
         counter <- counter+1
       }
     }

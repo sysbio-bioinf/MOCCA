@@ -5,7 +5,7 @@ dat <- toy9
 
 mb <- mocca.boot(dat, 10, nrow(dat)-trunc(sqrt(nrow(dat))))
 cres <- mocca.clust(dat, mb, 2:10, iter.max=1000, nstart=10)
-eres <- mocca.validate(cres)
+eres <- mocca.validate(dat, cres)
 obj <- mocca.objectives(eres)
 res <- mocca.pareto(obj)
 
