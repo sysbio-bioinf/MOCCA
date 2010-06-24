@@ -120,20 +120,32 @@ mocca.pareto <- function(obj){
   res
 }
 
+analyzePareto <- function(obj){
+  if(missing(obj) || !is.matrix(obj))
+    stop("'obj' must be a matrix of objective values")
+
+  ps <- getParetoSet(obj)
+  pstable <- getParetoRanking(obj, ps)
+
+  res <- list(rank=ps[order(apply(pstable, 1, function(u) min(u[-which(u==0)])), decreasing=T)], table=pstable)
+
+  res
+}
+
 ## mocca <- function(x, R = 50, K = 2:20, sampling.method = c("jackknife", "bootstrap", "bisect"), cluster.algorithms = c("kmeans", "fcmeans", "neuralgas", "single"), validation.index = c("MCA", "Rand", "Jaccard", "FM", "RR", "DP"), iter.max=10, nstart=1, save.dir = "./", save.all=F){
-mocca <- function(x, R = 50, K = 2:10, iter.max=1000, nstart=10, save.all=F, save.dir = "./"){
+mocca <- function(x, R = 50, K = 2:10, iter.max=1000, nstart=10){
   if(missing(x))
     stop("'x' must be a matrix")
   if(R <= 0)
     stop("'R' must be positiv")
   if(min(K)<2)
-    stop("min 'K' must be bigger than 1")
+    stop("min 'K' must be greater than 1")
   
   # sampling.method <- match.arg(sampling.method)
   # cluster.algorithms <- match.arg(cluster.algorithms, several.ok = T)
   # validation.index <- match.arg(validation.index, several.ok = T)
 
-  print("generating subsets")
+  cat("generating subsets\n")
   #size <- switch(sampling.method,
   #               jackknife= nrow(x)-trunc(sqrt(nrow(x))),
   #               bootstrap= nrow(x),
@@ -141,29 +153,29 @@ mocca <- function(x, R = 50, K = 2:10, iter.max=1000, nstart=10, save.all=F, sav
   #mb <- mocca.boot(x, R, size, if(sampling.method=="bootstrap"){T}else{F})
   mb <- mocca.boot(x, R)
 
-  print("running cluster algorithms")
+  cat("running cluster algorithms\n")
   cres <- mocca.clust(x, mb, K, iter.max=iter.max, nstart=nstart)
 
-  print("running evaluation")
+  cat("running evaluation\n")
   eres <- mocca.validate(x, cres)
 
-  print("running multi-objective optimization")
+  cat("collecting objective values\n")
   obj <- mocca.objectives(eres)
-  res <- mocca.pareto(obj)
+  # res <- mocca.pareto(obj)
   
-  print("saving details")
+  #print("saving details")
 
-  if(save.all){
-    if(save.dir=="./")
-      save.dir <- paste(save.dir, as.character(Sys.time(), format = "%Y-%m-%d-%H-%M-%S"), sep="")
-    dir.create(save.dir)
+  #if(save.all){
+  #  if(save.dir=="./")
+  #    save.dir <- paste(save.dir, as.character(Sys.time(), format = "%Y-%m-%d-%H-%M-%S"), sep="")
+  #  dir.create(save.dir)
     
-    save(cres, file = paste(save.dir, "/cres_C", max(K), "_R", R, ".RData", sep=""))
-    save(eres, file = paste(save.dir, "/eres_C", max(K), "_R", R, ".RData", sep=""))
-    save(res, file = paste(save.dir, "/pres_C", max(K), "_R", R, ".RData", sep=""))
-    write(res$ps, file = paste(save.dir, "/result_C", max(K), "_R", R, ".txt", sep=""),ncolumns=length(res$ps))
-    write(t(res$pstable), file = paste(save.dir, "/result_C", max(K), "_R", R, ".txt", sep=""), ncolumns=nrow(res$pstable),append=T)
-  }
+  #  save(cres, file = paste(save.dir, "/cres_C", max(K), "_R", R, ".RData", sep=""))
+  #  save(eres, file = paste(save.dir, "/eres_C", max(K), "_R", R, ".RData", sep=""))
+  #  save(res, file = paste(save.dir, "/pres_C", max(K), "_R", R, ".RData", sep=""))
+  #  write(res$ps, file = paste(save.dir, "/result_C", max(K), "_R", R, ".txt", sep=""),ncolumns=length(res$ps))
+  #  write(t(res$pstable), file = paste(save.dir, "/result_C", max(K), "_R", R, ".txt", sep=""), ncolumns=nrow(res$pstable),append=T)
+  #}
 
-  res
+  list(cluster=cres, objectiveVals=obj)
 }
