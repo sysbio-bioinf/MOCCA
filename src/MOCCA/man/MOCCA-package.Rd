@@ -14,9 +14,7 @@ Package: \tab MOCCA\cr
 Version: \tab 1.0\cr
 Date: \tab 2010-06-24\cr
 Depends: \tab R (>= 2.0.0), cclust, clv, e1071\cr
-SystemRequirements: \tab None\cr
 License: \tab Artistic License 2.0\cr
-Built: \tab R 2.11.0; ; 2010-06-07 09:33:11 UTC; unix\cr
 }
 
 Estimating the optimal cluster number of a dataset is often a difficult problem. Cluster validation indices are designed to rate a clustering and can be used to rank different cluster sizes. Bootstrapping has been proposed to determine robust cluster numbers based on such indices. However, these estimations vary depending on the employed clustering algorithm and cluster validation index. The idea of MOCCA is to estimate robust cluster numbers by aggregating the best cluster numbers of several clustering algorithms and cluster validation indices in a multi-objective setting.

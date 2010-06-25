@@ -48,14 +48,14 @@ mocca.clust <- function(x, mb, K = 2:10, algorithms = c("kmeans", "neuralgas", "
     }
   }
 
-  class(cres) <- "mocca.clust"
+  #class(cres) <- "mocca.clust"
   cres
 }
 
 mocca.validate <- function(x, cres){
   if(missing(x))
     stop("'x' must be a matrix")
-  if(missing(cres) || !inherits(cres,"mocca.clust"))
+  if(missing(cres) )#|| !inherits(cres,"mocca.clust"))
     stop("'cres' must be of type 'mocca.clust'")
  
   algorithms <- names(cres)
@@ -89,7 +89,7 @@ mocca.objectives <- function(eres){
   methods <- c("median")
   
   obj <- create_objectives(eres, algorithms, indices, methods)
-  class(obj) <- "mocca.objectives"
+  #class(obj) <- "mocca.objectives"
   obj
 }
 
@@ -136,10 +136,10 @@ analyzePareto <- function(obj){
 mocca <- function(x, R = 50, K = 2:10, iter.max=1000, nstart=10){
   if(missing(x))
     stop("'x' must be a matrix")
-  if(R <= 0)
-    stop("'R' must be positiv")
-  if(min(K)<2)
-    stop("min 'K' must be greater than 1")
+  if(R <= 1)
+    stop("'R' must be greater than 1")
+  if(min(K)<2 || max(K)>nrow(x))
+    stop("min 'K' must be greater than 1 and less than the number of data points")
   
   # sampling.method <- match.arg(sampling.method)
   # cluster.algorithms <- match.arg(cluster.algorithms, several.ok = T)

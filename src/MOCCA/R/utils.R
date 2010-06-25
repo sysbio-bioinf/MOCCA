@@ -118,6 +118,7 @@ na.omit.mocca.objectives <- function(x){
 getParetoSet <- function(sol){
   # format input -> na.omit omits rows not columns
 #  tmpsol <- t(na.omit(t(sol)))
+class(sol) <- "mocca.objectives"
   tmpsol <- na.omit(sol)
 
   # build pareto set
@@ -136,6 +137,7 @@ getParetoSet <- function(sol){
 getParetoRanking <- function(sol, ps){
   # format input -> na.omit omits rows not columns
 #  tmpsol <- t(na.omit(t(sol)))
+  class(sol) <- "mocca.objectives"
   tmpsol <- na.omit(sol)
 
   # for each solution in ps: how many objective function values in this solution

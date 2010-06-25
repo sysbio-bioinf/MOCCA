@@ -5,11 +5,11 @@
 Toy data set with 5 clusters
 }
 \description{
-This artificial data set contains 5 two dimensional gaussian clusters.
+This artificial data set contains 5 two-dimensional Gaussian clusters.
 }
 \usage{data(toy5)}
 \format{
-toy5 is a matrix with 50 cases (rows) and 2 variables (cols).
+toy5 is a matrix with 50 cases (rows) and 2 variables (columns).
 }
 \examples{
 data(toy5)
