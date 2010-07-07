@@ -1,5 +1,5 @@
 predict_baseline <- function(x, k, subset){
-  train <- x[sample(subset, k),]
+  train <- x[sample(unique(subset), k),]
   as.integer(knn1(train, x, 1:k))
 }
 
