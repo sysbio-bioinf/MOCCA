@@ -5,5 +5,5 @@ Date: 2010-06-24
 Author: Johann Kraus <johann.kraus@uni-ulm.de>
 Maintainer: Hans Kestler <hans.kestler@uni-ulm.de>
 Description: This package provides methods to analyze cluster alternatives based on multi-objective optimization of cluster validation indices. 
-Depends: R (>= 2.0.0), cclust, clv, e1071
+Depends: R (>= 2.0.0), cclust, clv
 License: Artistic License 2.0
