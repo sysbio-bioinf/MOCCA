@@ -8,10 +8,10 @@ predict_kmeans <- function(x, k, subset, iter.max, nstart){
   as.integer(knn1(train, x, 1:k))
 }
 
-predict_cmeans <- function(x, k, subset, iter.max){
-  train <- cmeans(x[subset, ], k, m = 1.112, iter.max=iter.max)$centers
-  as.integer(knn1(train, x, 1:k))
-}
+#predict_cmeans <- function(x, k, subset, iter.max){
+#  train <- cmeans(x[subset, ], k, m = 1.112, iter.max=iter.max)$centers
+#  as.integer(knn1(train, x, 1:k))
+#}
 
 predict_cclust <- function(x, k, subset, iter.max){
   train <- cclust(x[subset, ], k, method = "neuralgas", iter.max=iter.max)
@@ -27,7 +27,7 @@ runcluster <- function(x, k, subset, method, iter.max, nstart){
   res <- switch(method,
                 baseline  =  predict_baseline(x, k, subset),
                 kmeans    =  predict_kmeans(x, k, subset, iter.max, nstart),
-                fcmeans   =  predict_cmeans(x, k, subset, iter.max),
+                #fcmeans   =  predict_cmeans(x, k, subset, iter.max),
                 neuralgas =  predict_cclust(x, k, subset, iter.max),
                 single = predict_single(x, k, subset))
   res
