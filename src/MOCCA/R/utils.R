@@ -15,7 +15,7 @@ predict_kmeans <- function(x, k, subset, iter.max, nstart){
 
 predict_cclust <- function(x, k, subset, iter.max){
   train <- cclust(x[subset, ], k, method = "neuralgas", iter.max=iter.max)
-  predict.cclust(train, x)$cluster
+  predict(train, x)$cluster
 }
 
 predict_single <- function(x, k, subset){
@@ -69,7 +69,7 @@ extract_index <- function(eres, algorithm, index){
 create_objectives <- function(eres, algorithms, indices, methods){
   maxK <- length(eres[["baseline"]])
   maxB <- length(indices)*length(methods)
-  bases <- matrix(nr=maxB,nc=maxK)
+  bases <- matrix(nrow=maxB,ncol=maxK)
   counter <- 1
   for(idx in indices){
     ei <- extract_index(eres, c("baseline"), idx)
@@ -79,7 +79,7 @@ create_objectives <- function(eres, algorithms, indices, methods){
     }
   }
 
-  res <- matrix(nr=length(algorithms)*maxB, nc=maxK)
+  res <- matrix(nrow=length(algorithms)*maxB, ncol=maxK)
   rownames(res) <- 1:nrow(res)
   colnames(res) <- 1:maxK
   counter <- 1
