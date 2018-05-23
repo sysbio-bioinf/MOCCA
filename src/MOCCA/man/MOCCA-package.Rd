@@ -11,8 +11,8 @@ This package provides methods to analyze cluster alternatives based on multi-obj
 \details{
 \tabular{ll}{
 Package: \tab MOCCA\cr
-Version: \tab 1.0\cr
-Date: \tab 2010-06-24\cr
+Version: \tab 1.3\cr
+Date: \tab 2018-05-23\cr
 Depends: \tab R (>= 2.0.0), cclust, clv, e1071\cr
 License: \tab Artistic License 2.0\cr
 }
