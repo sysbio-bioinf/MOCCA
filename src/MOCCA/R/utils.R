@@ -42,19 +42,40 @@ cross.quant.similarity <- function(x, cluster1, cluster2){
   1 - (mean(sapply(1:length(cluster1), function(u) abs(dists2cent1[cluster1[u],u]-dists2cent2[cluster2[u],u]))) / max(dist(x))) # to bound in [0, 1]
 }
 
+## see vignette clue, page 9, "transfer distance", "R-metric", "partition distance"
+mca.index <- function(cluster1, cluster2){
+  n <- length(cluster1)
+  k1 <- list(cluster=cluster1)
+  k2 <- list(cluster=cluster2)
+  class(k1) <- "kmeans"
+  class(k2) <- "kmeans"
+  (n - cl_dissimilarity(cl_ensemble(k1, k2), method="manhattan") / 2) / n
+}
+
+jaccard.index <- function(cluster1, cluster2){
+  k1 <- list(cluster=cluster1)
+  k2 <- list(cluster=cluster2)
+  class(k1) <- "kmeans"
+  class(k2) <- "kmeans"
+  cl_agreement(cl_ensemble(k1, k2), method="Jaccard")[[1]]
+}
+
+fm.index <- function(cluster1, cluster2){
+  k1 <- list(cluster=cluster1)
+  k2 <- list(cluster=cluster2)
+  class(k1) <- "kmeans"
+  class(k2) <- "kmeans"
+  cl_agreement(cl_ensemble(k1, k2), method="FM")[[1]]
+}
+
 clusval <- function(x, cluster1, cluster2, k){
   cluster1 <- as.integer(cluster1)
   cluster2 <- as.integer(cluster2)
   
   if(length(unique(cluster1))<k || length(unique(cluster2))<k)
-    #return(list(MCA=NA, Rand=NA, Jaccard=NA, FM=NA, RR=NA, DP=NA, CQS=NA))
     return(list(MCA=NA, Jaccard=NA, FM=NA, CQS=NA))
   
-  ext <- std.ext(cluster1, cluster2)
-  cfm <- confusion.matrix(cluster1, cluster2)
-  
-  #list(MCA=similarity.index(cfm), Rand=clv.Rand(ext), Jaccard=clv.Jaccard(ext), FM=clv.Folkes.Mallows(ext), RR=clv.Russel.Rao(ext), DP=dot.product(cluster1, cluster2), CQS=cross.quant.similarity(x, cluster1, cluster2))
-  list(MCA=similarity.index(cfm), Jaccard=clv.Jaccard(ext), FM=clv.Folkes.Mallows(ext), CQS=cross.quant.similarity(x, cluster1, cluster2))
+  list(MCA=mca.index(cluster1, cluster2), Jaccard=jaccard.index(cluster1, cluster2), FM=fm.index(cluster1, cluster2), CQS=cross.quant.similarity(x, cluster1, cluster2))
 }
 
 extract_index <- function(eres, algorithm, index){

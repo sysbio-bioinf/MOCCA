@@ -20,6 +20,7 @@ analyzePareto(obj)
   \item{table}{{A table specifying the ranking of Pareto-optimal cluster sizes. Each row is associated with a particular Pareto-optimal cluster size. Its entries specify in how many objective functions it dominates clusterings of other cluster sizes. The Pareto-optimal cluster sizes are ranked by the minimum number of objectives in which they dominate other cluster sizes.}}
 }
 \examples{
+set.seed(12345)
 data(toy5)
 obj <- mocca(toy5, R=10, K=2:5)
 print(analyzePareto(obj$objectiveVals))

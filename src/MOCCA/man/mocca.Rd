@@ -36,6 +36,7 @@ A list containing one sublist for each clustering algorithm and the baseline clu
 
 }
 \examples{
+set.seed(12345)
 data(toy5)
 res <- mocca(toy5, R=10, K=2:5)
 print(res$objectiveVals)
